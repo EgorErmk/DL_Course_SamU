@@ -22,6 +22,9 @@ def softmax_loss_naive(W, X, y, reg):
     - gradient with respect to weights W; an array of same shape as W
     """
     # Initialize the loss and gradient to zero.
+
+    D, C = W.shape
+    N = y.shape[0]
     loss = 0.0
     dW = np.zeros_like(W)
 
@@ -33,8 +36,14 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
-
+    for n in range(N):
+        for c in range(C):
+            if c == y[n]:
+                loss -= np.log(np.exp(W.T[c].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()) + np.linalg.norm(W)
+    loss /= N
+    for n in range(N):
+        for c in range(C):
+          dW -= X[n].reshape((-1,1)).dot(((np.arange(C) == c) - np.exp(W.T[c].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()).reshape((-1,1)).T)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
