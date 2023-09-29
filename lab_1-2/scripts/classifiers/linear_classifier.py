@@ -40,9 +40,18 @@ class LinearClassifier(object):
 
         # Run stochastic gradient descent to optimize W
         loss_history = []
+        batch_bits = num_train//batch_size
+        
         for it in range(num_iters):
-            X_batch = None
-            y_batch = None
+            # batch_index = 0
+            rand_ind = np.random.choice(X.shape[0],batch_size)            
+            # if i == batch_bits-1:
+            #   X_batch = X[rand_ind][batch_index : -1]       
+            #   y_batch = y[rand_ind][batch_index : -1]
+            # else:
+            # batch_index += batch_size
+            X_batch = X[rand_ind]    
+            y_batch = y[rand_ind]
 
             #########################################################################
             # TODO:                                                                 #
@@ -72,12 +81,12 @@ class LinearClassifier(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            self.W -= learning_rate * grad
+            self.W += learning_rate * grad
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
             if verbose and it % 100 == 0:
-                print('iteration %d / %d: loss %f' % (it, num_iters, loss))
+              print('iteration %d / %d: loss %f' % (it, num_iters, loss_history[-1]))
 
         return loss_history
 
@@ -102,7 +111,7 @@ class LinearClassifier(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        y_pred = X.dot(self.W)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return y_pred
@@ -122,7 +131,10 @@ class LinearClassifier(object):
         - loss as a single float
         - gradient with respect to self.W; an array of the same shape as W
         """
-        pass
+        loss = 0
+        grad = np.zeros_like(self.W)
+
+        return loss, grad
 
 
 class LinearSVM(LinearClassifier):

@@ -26,7 +26,7 @@ def softmax_loss_naive(W, X, y, reg):
     D, C = W.shape
     N = y.shape[0]
     loss = 0.0
-    dW = np.zeros_like(W)
+    dW = np.zeros_like(W.T)
 
     #############################################################################
     # TODO: Compute the softmax loss and its gradient using explicit loops.     #
@@ -37,16 +37,19 @@ def softmax_loss_naive(W, X, y, reg):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     for n in range(N):
-        for c in range(C):
-            if c == y[n]:
-                loss -= np.log(np.exp(W.T[c].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()) + np.linalg.norm(W)
+        loss -= np.log(np.exp(W.T[y[n]].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()) - np.linalg.norm(W) * reg
     loss /= N
-    for n in range(N):
-        for c in range(C):
-          dW -= X[n].reshape((-1,1)).dot(((np.arange(C) == c) - np.exp(W.T[c].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()).reshape((-1,1)).T)
+    # for c in range(C):
+    #   for n in range(N):  
+    #       dW[c] -= X[n].reshape((-1,1)).dot(((np.arange(C) == c) - np.exp(W.T[c].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()).reshape((-1,1)).T)
+    for c in range(C):
+      for n in range(N):  
+          dW[c] -= X[n]*((y[n] == c) - np.exp(W.T[c].dot(X[n]))/(np.exp(W.T.dot(X[n]))).sum()) - 2*W[:,c]*reg
+    dW /= N
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    return loss, dW
+    return loss, dW.T
 
 
 def softmax_loss_vectorized(W, X, y, reg):
@@ -58,7 +61,8 @@ def softmax_loss_vectorized(W, X, y, reg):
     # Initialize the loss and gradient to zero.
     loss = 0.0
     dW = np.zeros_like(W)
-
+    D, C = W.shape
+    N = y.shape[0]
     #############################################################################
     # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
     # Store the loss in loss and the gradient in dW. If you are not careful     #
@@ -66,9 +70,12 @@ def softmax_loss_vectorized(W, X, y, reg):
     # regularization!                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    
+    loss -= (np.log(np.exp((X * W[:,y].T).sum(-1))/(np.exp((W.T.dot(X.T).T)).sum(-1)))).sum() - N * np.linalg.norm(W) * reg
+    loss /= N
 
-    pass
-
+    dW = -X.T.dot(((np.logical_not(np.equal(np.full((N,C),np.arange(C)).T,np.full((C,N),y)))) - (np.exp((X * W[:,y].T).sum(-1))/(np.exp((W.T.dot(X.T).T)).sum(-1)))).T) - 2*W*reg*N
+    dW /= N
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW

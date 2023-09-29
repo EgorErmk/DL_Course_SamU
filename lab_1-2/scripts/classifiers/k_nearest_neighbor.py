@@ -24,7 +24,7 @@ class KNearestNeighbor(object):
         self.X_train = X
         self.y_train = y
 
-    def predict(self, X, k=1, num_loops=1):
+    def predict(self, X, k=1, num_loops=0):
         """
         Predict labels for test data using this classifier.
 
@@ -129,7 +129,7 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        dists = np.sum((np.sqrt(np.square(X[:,None] - self.X_train))),axis=-1)
+        dists = np.sum((np.sqrt(np.square((X.dot(np.ones(X.shape)) + self.X_train.dot(-np.ones(self.X_train.shape)).T).sum(-1)))),axis=-1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
