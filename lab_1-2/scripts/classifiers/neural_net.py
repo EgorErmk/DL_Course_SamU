@@ -39,9 +39,13 @@ class TwoLayerNet(object):
         """
         self.params = {}
         self.params['W1'] = std * np.random.randn(input_size, hidden_size)
-        self.params['b1'] = np.zeros(hidden_size)
+        # self.params['b1'] = np.zeros(hidden_size)
         self.params['W2'] = std * np.random.randn(hidden_size, output_size)
-        self.params['b2'] = np.zeros(output_size)
+        # self.params['b2'] = np.zeros(output_size)
+        self.hidden_size = hidden_size
+        self.num_classes = output_size
+        self.softmax = lambda x : np.exp(x)/np.tile(np.exp(x).sum(-1),(x.shape[1],1)).T
+        self.relu = lambda x : np.max((np.zeros_like(x),x),axis=0)
 
     def loss(self, X, y=None, reg=0.0):
         """
@@ -67,10 +71,12 @@ class TwoLayerNet(object):
           with respect to the loss function; has the same keys as self.params.
         """
         # Unpack variables from the params dictionary
-        W1, b1 = self.params['W1'], self.params['b1']
-        W2, b2 = self.params['W2'], self.params['b2']
+        # W1, b1 = self.params['W1'], self.params['b1']
+        W1 = self.params['W1']
+        # W2, b2 = self.params['W2'], self.params['b2']
+        W2 = self.params['W2']
         N, D = X.shape
-
+        C = self.num_classes
         # Compute the forward pass
         scores = None
         #############################################################################
@@ -80,7 +86,7 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        scores = self.relu(X.dot(self.params['W1'])).dot(self.params['W2'])
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -98,7 +104,8 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss = (-np.log(self.softmax(scores))[np.arange(N),y]).sum() + np.linalg.norm(self.params['W1'])*reg*N + np.linalg.norm(self.params['W2'])*reg*N
+        loss /= N
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,7 +118,9 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        grads['W2'] = (((np.full((N,C),np.arange(C)) == np.tile(y,(C,1)).T) - self.softmax(scores)).T.dot(self.relu(X.dot(self.params['W1'])))).T + 2*self.params['W2']*reg
+        #             (-1/self.softmax(scores))[np.arange(N),y] * self.softmax(scores)[np.arange(N),y] * 
+        grads['W1'] = (((np.full((N,C),np.arange(C)) == np.tile(y,(C,1)).T) - self.softmax(scores)) * np.full((C,N),self.relu(X.dot(self.params['W1']).sum(-1))).T).dot(self.params['W2'].T).T.dot(X).T + 2*self.params['W1']*reg
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -156,7 +165,9 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            rand_ind = np.random.choice(X.shape[0],batch_size)  
+            X_batch = X[rand_ind]    
+            y_batch = y[rand_ind]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -172,7 +183,8 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            self.params['W1'] += learning_rate * grads['W1']
+            self.params['W2'] += learning_rate * grads['W2']
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -217,8 +229,8 @@ class TwoLayerNet(object):
         # TODO: Implement this function; it should be VERY simple!                #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        
+        y_pred = np.argmax(self.softmax(self.relu(X.dot(self.params['W1'])).dot(self.params['W2'])),axis=-1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
