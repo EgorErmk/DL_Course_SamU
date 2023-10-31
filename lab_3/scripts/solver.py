@@ -307,3 +307,19 @@ class Solver(object):
 
         # At the end of training swap the best params into the model
         self.model.params = self.best_params
+    def predict(self, X):
+        """
+        Check accuracy of the model on the provided data.
+
+        Inputs:
+        - X: Array of data, of shape (N, d_1, ..., d_k)
+        - y: Array of labels, of shape (N,)
+
+        Returns:
+        - y_pred: Array of labels predicted for X by the model.
+        """
+        y_pred = []
+        scores = self.model.loss(X)
+        y_pred = np.argmax(scores, axis=1)
+        
+        return y_pred
